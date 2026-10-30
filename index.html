@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial del Fallecido</title>
+    <!-- Estilos básicos para una presentación digna -->
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f9f9f9; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        .foto { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #e0e0e0; margin-bottom: 15px; }
+        .nombre { font-size: 2em; color: #2c3e50; margin: 0; }
+        .fechas { color: #7f8c8d; font-style: italic; margin-top: 5px; }
+        .ubicacion { background: #ecf0f1; padding: 10px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }
+        .biografia { text-align: justify; white-space: pre-wrap; }
+        .error { color: #e74c3c; text-align: center; font-weight: bold; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <p style="text-align:center;">Cargando historial...</p>
+    </div>
+
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ⚠️ REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO EN SUPABASE
+        const SUPABASE_URL = 'https://rlsmguxaujmafdurjetk.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY='sb_publishable_viPv4ZhQPMQjDaCSnggKEw_5z8SLS7D';
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+        const appDiv = document.getElementById('app');
+
+        // Obtener el código del nicho desde la URL (ej: ?nicho=ABC123)
+        const urlParams = new URLSearchParams(window.location.search);
+        const codigoNicho = urlParams.get('nicho');
+
+        async function cargarHistorial() {
+            if (!codigoNicho) {
+                appDiv.innerHTML = '<p class="error">❌ No se proporcionó un código de nicho válido en la URL.</p>';
+                return;
+            }
+
+            // 1. Buscar el ID del nicho usando el código del QR
+            const { data: nichoData, error: nichoError } = await supabaseClient
+                .from('niches')
+                .select('id, ubicacion')
+                .eq('codigo_qr', codigoNicho)
+                .single();
+
+            if (nichoError || !nichoData) {
+                appDiv.innerHTML = '<p class="error">❌ No se encontró ningún nicho con ese código.</p>';
+                console.error(nichoError);
+                return;
+            }
+
+            // 2. Buscar al fallecido asociado a ese nicho
+            const { data: fallecidoData, error: fallecidoError } = await supabaseClient
+                .from('fallecidos')
+                .select('*')
+                .eq('nicho_id', nichoData.id)
+                .single();
+
+            if (fallecidoError || !fallecidoData) {
+                appDiv.innerHTML = `<p class="error">❌ No se encontraron registros de fallecidos para este nicho.</p>`;
+                console.error(fallecidoError);
+                return;
+            }
+
+            // 3. Renderizar la información en el HTML
+            const fotoHtml = fallecidoData.foto_url 
+                ? `<img src="${fallecidoData.foto_url}" alt="Foto de ${fallecidoData.nombre_completo}" class="foto">` 
+                : '';
+
+            appDiv.innerHTML = `
+                <div class="header">
+                    ${fotoHtml}
+                    <h1 class="nombre">${fallecidoData.nombre_completo}</h1>
+                    <p class="fechas">
+                        ${fallecidoData.fecha_nacimiento ? `Nacimiento: ${fallecidoData.fecha_nacimiento}` : ''} 
+                        ${fallecidoData.fecha_fallecimiento ? ` | Fallecimiento: ${fallecidoData.fecha_fallecimiento}` : ''}
+                    </p>
+                </div>
+                <div class="ubicacion">
+                    📍 Ubicación del nicho: ${nichoData.ubicacion || 'No especificada'}
+                </div>
+                <div class="biografia">
+                    ${fallecidoData.biografia || 'No hay una biografía registrada.'}
+                </div>
+            `;
+        }
+
+        // Iniciar la carga
+        cargarHistorial();
+    </script>
+</body>
+</html>
