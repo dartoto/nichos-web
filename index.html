@@ -1,98 +1,266 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historial del Fallecido</title>
-    <!-- Estilos básicos para una presentación digna -->
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f9f9f9; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
-        .foto { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #e0e0e0; margin-bottom: 15px; }
-        .nombre { font-size: 2em; color: #2c3e50; margin: 0; }
-        .fechas { color: #7f8c8d; font-style: italic; margin-top: 5px; }
-        .ubicacion { background: #ecf0f1; padding: 10px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }
-        .biografia { text-align: justify; white-space: pre-wrap; }
-        .error { color: #e74c3c; text-align: center; font-weight: bold; padding: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial del Fallecido</title>
+  <meta name="description" content="Consulta la memoria y el historial de un ser querido.">
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg-1: #f7f5f0;
+      --bg-2: #e8e4da;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+      --text-soft: #6b7280;
+      --accent: #8a9a8b;
+      --accent-soft: #d9e0d9;
+      --shadow: 0 10px 40px rgba(44, 62, 80, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(138, 154, 139, 0.10), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(44, 62, 80, 0.08), transparent 55%),
+        linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      background-attachment: fixed;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 720px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 48px 40px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.7s ease;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .photo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid #fff;
+      box-shadow: 0 6px 20px rgba(44, 62, 80, 0.18);
+      margin-bottom: 18px;
+      display: inline-block;
+    }
+
+    .name {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 8px;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+
+    .dates {
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--text-soft);
+      margin: 0;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0;
+      color: var(--accent);
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
+    }
+
+    .divider .symbol {
+      font-size: 1.1rem;
+      letter-spacing: 4px;
+    }
+
+    .location-wrapper {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .location {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: #4b5a4c;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .bio {
+      text-align: justify;
+      white-space: pre-wrap;
+      font-size: 1.02rem;
+      color: #374151;
+      line-height: 1.8;
+    }
+
+    .error {
+      text-align: center;
+      color: #b91c1c;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 18px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .loading {
+      text-align: center;
+      color: var(--text-soft);
+      font-style: italic;
+    }
+
+    .footer {
+      margin-top: 28px;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 560px) {
+      .card { padding: 32px 22px; border-radius: 16px; }
+      .photo { width: 120px; height: 120px; }
+      .bio { text-align: left; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container" id="app">
-        <p style="text-align:center;">Cargando historial...</p>
-    </div>
+  <div class="page">
+    <main class="card" id="app">
+      <p class="loading">Cargando historial...</p>
+    </main>
+    <footer class="footer">MEMORIA · HISTORIAL DIGITAL</footer>
+  </div>
 
-    <!-- SDK de Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // ⚠️ REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO EN SUPABASE
-        const SUPABASE_URL = 'https://rlsmguxaujmafdurjetk.supabase.co';
-        const SUPABASE_PUBLISHABLE_KEY='sb_publishable_viPv4ZhQPMQjDaCSnggKEw_5z8SLS7D';
+  <!-- SDK de Supabase alojado localmente -->
+  <script src="supabase.js"></script>
+  <script>
+    // ⚠️ Reemplaza por tus credenciales reales
+    const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_TU_CLAVE';
 
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-        const appDiv = document.getElementById('app');
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const appDiv = document.getElementById('app');
 
-        // Obtener el código del nicho desde la URL (ej: ?nicho=ABC123)
-        const urlParams = new URLSearchParams(window.location.search);
-        const codigoNicho = urlParams.get('nicho');
+    const urlParams = new URLSearchParams(window.location.search);
+    const codigoNicho = urlParams.get('nicho');
 
-        async function cargarHistorial() {
-            if (!codigoNicho) {
-                appDiv.innerHTML = '<p class="error">❌ No se proporcionó un código de nicho válido en la URL.</p>';
-                return;
-            }
+    function formatearFecha(fecha) {
+      if (!fecha) return '';
+      const [y, m, d] = fecha.split('-');
+      if (!y || !m || !d) return fecha;
+      return `${d}/${m}/${y}`;
+    }
 
-            // 1. Buscar el ID del nicho usando el código del QR
-            const { data: nichoData, error: nichoError } = await supabaseClient
-                .from('niches')
-                .select('id, ubicacion')
-                .eq('codigo_qr', codigoNicho)
-                .single();
+    async function cargarHistorial() {
+      if (!codigoNicho) {
+        appDiv.innerHTML = '<p class="error">❌ No se proporcionó un código de nicho válido en la URL.</p>';
+        return;
+      }
 
-            if (nichoError || !nichoData) {
-                appDiv.innerHTML = '<p class="error">❌ No se encontró ningún nicho con ese código.</p>';
-                console.error(nichoError);
-                return;
-            }
+      const { data: nichoData, error: nichoError } = await supabaseClient
+        .from('niches')
+        .select('id, ubicacion')
+        .eq('codigo_qr', codigoNicho)
+        .single();
 
-            // 2. Buscar al fallecido asociado a ese nicho
-            const { data: fallecidoData, error: fallecidoError } = await supabaseClient
-                .from('fallecidos')
-                .select('*')
-                .eq('nicho_id', nichoData.id)
-                .single();
+      if (nichoError || !nichoData) {
+        appDiv.innerHTML = '<p class="error">❌ No se encontró ningún nicho con ese código.</p>';
+        console.error(nichoError);
+        return;
+      }
 
-            if (fallecidoError || !fallecidoData) {
-                appDiv.innerHTML = `<p class="error">❌ No se encontraron registros de fallecidos para este nicho.</p>`;
-                console.error(fallecidoError);
-                return;
-            }
+      const { data: fallecidoData, error: fallecidoError } = await supabaseClient
+        .from('fallecidos')
+        .select('*')
+        .eq('nicho_id', nichoData.id)
+        .single();
 
-            // 3. Renderizar la información en el HTML
-            const fotoHtml = fallecidoData.foto_url 
-                ? `<img src="${fallecidoData.foto_url}" alt="Foto de ${fallecidoData.nombre_completo}" class="foto">` 
-                : '';
+      if (fallecidoError || !fallecidoData) {
+        appDiv.innerHTML = '<p class="error">❌ No se encontraron registros de fallecidos para este nicho.</p>';
+        console.error(fallecidoError);
+        return;
+      }
 
-            appDiv.innerHTML = `
-                <div class="header">
-                    ${fotoHtml}
-                    <h1 class="nombre">${fallecidoData.nombre_completo}</h1>
-                    <p class="fechas">
-                        ${fallecidoData.fecha_nacimiento ? `Nacimiento: ${fallecidoData.fecha_nacimiento}` : ''} 
-                        ${fallecidoData.fecha_fallecimiento ? ` | Fallecimiento: ${fallecidoData.fecha_fallecimiento}` : ''}
-                    </p>
-                </div>
-                <div class="ubicacion">
-                    📍 Ubicación del nicho: ${nichoData.ubicacion || 'No especificada'}
-                </div>
-                <div class="biografia">
-                    ${fallecidoData.biografia || 'No hay una biografía registrada.'}
-                </div>
-            `;
-        }
+      const fotoHtml = fallecidoData.foto_url
+        ? `<img src="${fallecidoData.foto_url}" alt="Foto de ${fallecidoData.nombre_completo}" class="photo">`
+        : '';
 
-        // Iniciar la carga
-        cargarHistorial();
-    </script>
+      const fechasPartes = [];
+      if (fallecidoData.fecha_nacimiento) fechasPartes.push(`Nacimiento: ${formatearFecha(fallecidoData.fecha_nacimiento)}`);
+      if (fallecidoData.fecha_fallecimiento) fechasPartes.push(`Fallecimiento: ${formatearFecha(fallecidoData.fecha_fallecimiento)}`);
+      const fechasHtml = fechasPartes.length ? `<p class="dates">${fechasPartes.join(' &nbsp;·&nbsp; ')}</p>` : '';
+
+      appDiv.innerHTML = `
+        <div class="header">
+          ${fotoHtml}
+          <h1 class="name">${fallecidoData.nombre_completo}</h1>
+          ${fechasHtml}
+        </div>
+        <div class="divider"><span class="symbol">❦</span></div>
+        ${nichoData.ubicacion ? `<div class="location-wrapper"><span class="location">📍 ${nichoData.ubicacion}</span></div>` : ''}
+        <div class="bio">${fallecidoData.biografia || 'No hay una biografía registrada.'}</div>
+      `;
+    }
+
+    cargarHistorial();
+  </script>
 </body>
 </html>
